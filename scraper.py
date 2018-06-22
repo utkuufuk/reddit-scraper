@@ -11,8 +11,9 @@ def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':AGENT, 'Accept-Language':LANGUAGE}).text, 'lxml')
 
 def getNextResultPageUrl(resultPageUrl):
-    nextPage = createSoup(resultPageUrl)
-    return nextPage.find('span', {'class':'nextprev'}).findAll('a')[-1]['href']
+    page = createSoup(resultPageUrl)
+    footer = page.findAll('span', {'class':'nextprev'})[-1] 
+    return footer.findAll('a')[-1]['href']
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -20,8 +21,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     searchUrl = SITE_URL + 'search?q="' + args.keyword + '"'
 
+    page = createSoup(searchUrl)
+    contents = page.findAll('div', {'class':'search-result-link'})
+
+    for content in contents:
+        print(content.text)
+        input() 
+
     nextPageUrl = getNextResultPageUrl(searchUrl)
     print(nextPageUrl)
-    
+
     nextPageUrl = getNextResultPageUrl(nextPageUrl)
     print(nextPageUrl)
