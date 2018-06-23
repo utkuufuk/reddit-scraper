@@ -12,16 +12,15 @@ def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':REQUEST_AGENT}).text, 'lxml')
 
 def getSearchResults(searchUrl):
-    searchResults = []
+    results = []
     while True:
         resultPage = createSoup(searchUrl)
-        results = resultPage.findAll('div', {'class':'search-result-link'})
-        searchResults += results
-        footers = resultPage.findAll('a', {'rel':'nofollow next'})
-        if footers:
-            searchUrl = footers[-1]['href']
+        results += resultPage.findAll('div', {'class':'search-result-link'})
+        footer = resultPage.findAll('a', {'rel':'nofollow next'})
+        if footer:
+            searchUrl = footer[-1]['href']
         else:
-            return searchResults
+            return results
 
 def processResults(results):
     for result in results:
@@ -30,13 +29,18 @@ def processResults(results):
         if date < TRESHOLD_DATE:
             return
         title = result.find('a', {'class':'search-title'})
-        print(str(date)[:10] + ":", title.text)
+        comments = result.find('a', {'class':'search-comments'})
+        score = result.find('span', {'class':'search-score'})
+        author = result.find('a', {'class':'author'})
+        subreddit = result.find('a', {'class':'search-subreddit-link'})
+        print("\n" + str(date)[:10] + ":", title.text)
+        print(comments.text, score.text, author.text, subreddit.text)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help="keyword to search")
     args = parser.parse_args()
-    searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
 
+    searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
     results = getSearchResults(searchUrl)
     processResults(results) 
