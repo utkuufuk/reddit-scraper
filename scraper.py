@@ -1,3 +1,4 @@
+from datetime import datetime
 from bs4 import BeautifulSoup
 import argparse
 import requests
@@ -25,4 +26,11 @@ if __name__ == '__main__':
         print("searching", searchUrl)
         resultPage = createSoup(searchUrl)
         results = resultPage.findAll('div', {'class':'search-result-link'})
+        for result in results:
+            print(result.text)
+            time = result.find('time')
+            print(time['datetime'])
+            date = datetime.strptime(time['datetime'][:10], '%Y-%m-%d')
+            print(date)
+            input()
         searchUrl = getNextPageUrl(searchUrl)
