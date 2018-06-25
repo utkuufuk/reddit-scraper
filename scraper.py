@@ -23,16 +23,14 @@ def getSearchResults(searchUrl):
         else:
             return results
 
-def processResults(results):
-    product = {}
-    newestPostDate = TRESHOLD_DATE
+def processResults(results, product, startDate):
     for result in results:
         time = result.find('time')['datetime']
         date = datetime.strptime(time[:10], '%Y-%m-%d')
-        if date > newestPostDate:
-            newestPostDate = date
-        if date < TRESHOLD_DATE:
-            return
+        if date > startDate:
+            startDate = date
+        else:
+            return product, startDate
         title = result.find('a', {'class':'search-title'}).text
         comments = result.find('a', {'class':'search-comments'}).text
         score = result.find('span', {'class':'search-score'}).text
@@ -42,20 +40,31 @@ def processResults(results):
         value = {'title':title, 'comments':comments, 'score':score, 'author':author, 'subreddit':subreddit}
         product[key] = value
         print("\n" + str(date)[:10] + ":", title, "\n" + key, comments, score, author, subreddit)
-    return product, newestPostDate
+    print("newest post date:", startDate)
+    return product, startDate
+
+def writeProduct(product, timestamp):
+    outFileName = args.keyword + ".json"
+    with open(outFileName, 'w') as f:
+        json.dump({'timestamp':timestamp, 'product':product}, f, indent=4)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help="keyword to search")
     args = parser.parse_args()
 
+    try:
+        data = json.load(open(args.keyword + ".json"))
+        product = data['product']
+        startDate = datetime.strptime(data['timestamp'][:10], '%Y-%m-%d')
+        print("newest post date:", startDate)
+    except FileNotFoundError:
+        print("WARNING: Database file not found. Creating a new one...")
+        product = {}
+        startDate = TRESHOLD_DATE
+
     searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
     print("Search URL:", searchUrl)
     results = getSearchResults(searchUrl)
-    product, newestPostDate = processResults(results) 
-    print("newest post date:", newestPostDate)
-
-    data = {'timestamp':str(newestPostDate), 'product':product}
-    outFileName = args.keyword + ".json"
-    with open(outFileName, 'w') as f:
-        json.dump(data, f)
+    product, timestamp = processResults(results, product, startDate) 
+    writeProduct(product, str(timestamp))
