@@ -25,9 +25,12 @@ def getSearchResults(searchUrl):
 
 def processResults(results):
     product = {}
+    newestPostDate = TRESHOLD_DATE
     for result in results:
         time = result.find('time')['datetime']
         date = datetime.strptime(time[:10], '%Y-%m-%d')
+        if date > newestPostDate:
+            newestPostDate = date
         if date < TRESHOLD_DATE:
             return
         title = result.find('a', {'class':'search-title'}).text
@@ -38,8 +41,8 @@ def processResults(results):
         key = result['data-fullname']
         value = {'title':title, 'comments':comments, 'score':score, 'author':author, 'subreddit':subreddit}
         product[key] = value
-        print("\n" + str(date)[:10] + ":", title + "\n", key, comments, score, author, subreddit)
-    return product
+        print("\n" + str(date)[:10] + ":", title, "\n" + key, comments, score, author, subreddit)
+    return product, newestPostDate
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -49,7 +52,10 @@ if __name__ == '__main__':
     searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
     print("Search URL:", searchUrl)
     results = getSearchResults(searchUrl)
-    product = processResults(results) 
+    product, newestPostDate = processResults(results) 
+    print("newest post date:", newestPostDate)
+
+    data = {'timestamp':str(newestPostDate), 'product':product}
     outFileName = args.keyword + ".json"
     with open(outFileName, 'w') as f:
-        json.dump(product, f)
+        json.dump(data, f)
