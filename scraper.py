@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import argparse
 import requests
 import json
+import re
 
 SITE_URL = "https://old.reddit.com/"
 DEFAULT_KEYWORD = "uzay"
@@ -24,24 +25,29 @@ def getSearchResults(searchUrl):
             return results
 
 def processResults(results, product, startDate):
+    lastDate = startDate
     for result in results:
         time = result.find('time')['datetime']
-        date = datetime.strptime(time[:10], '%Y-%m-%d')
-        if date > startDate:
-            startDate = date
-        else:
-            return product, startDate
+        date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
+        if date < startDate:
+            print("older date encountered: ", str(date))
+            return product, lastDate
+        if date > lastDate:
+            lastDate = date
         title = result.find('a', {'class':'search-title'}).text
-        comments = result.find('a', {'class':'search-comments'}).text
+        comments = result.find('a', {'class':'search-comments'})
+        numComments = int(comments.text.replace(' comments', ''))
+        commentsLink = comments['href'] if numComments > 0 else '';
         score = result.find('span', {'class':'search-score'}).text
+        score = int(re.match(r'\d+', score).group(0))
         author = result.find('a', {'class':'author'}).text
         subreddit = result.find('a', {'class':'search-subreddit-link'}).text
-        key = result['data-fullname']
-        value = {'title':title, 'comments':comments, 'score':score, 'author':author, 'subreddit':subreddit}
-        product[key] = value
-        print("\n" + str(date)[:10] + ":", title, "\n" + key, comments, score, author, subreddit)
-    print("newest post date:", startDate)
-    return product, startDate
+        value = {'title':title, 'date':str(date), 'score':score, 'author':author, 'subreddit':subreddit,
+                 'comments':{'count':numComments, 'link':commentsLink}}
+        product.append(value)
+        print("\n" + str(date)[:19] + ":", title, "\n", numComments, score, author, subreddit)
+    print("newest post date:", lastDate)
+    return product, lastDate
 
 def writeProduct(product, timestamp):
     outFileName = args.keyword + ".json"
@@ -56,11 +62,11 @@ if __name__ == '__main__':
     try:
         data = json.load(open(args.keyword + ".json"))
         product = data['product']
-        startDate = datetime.strptime(data['timestamp'][:10], '%Y-%m-%d')
+        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%d')
         print("newest post date:", startDate)
     except FileNotFoundError:
         print("WARNING: Database file not found. Creating a new one...")
-        product = {}
+        product = []
         startDate = TRESHOLD_DATE
 
     searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
