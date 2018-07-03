@@ -24,6 +24,11 @@ def getSearchResults(searchUrl):
         else:
             return results
 
+def parseComments(commentsTag):
+    numComments = int(commentsTag.text.replace(' comments', ''))
+    commentsLink = commentsTag['href'] if numComments > 0 else '';
+    return numComments, commentsLink
+
 def processResults(results, product, startDate):
     lastDate = startDate
     for result in results:
@@ -35,24 +40,21 @@ def processResults(results, product, startDate):
         if date > lastDate:
             lastDate = date
         title = result.find('a', {'class':'search-title'}).text
-        comments = result.find('a', {'class':'search-comments'})
-        numComments = int(comments.text.replace(' comments', ''))
-        commentsLink = comments['href'] if numComments > 0 else '';
         score = result.find('span', {'class':'search-score'}).text
         score = int(re.match(r'\d+', score).group(0))
         author = result.find('a', {'class':'author'}).text
         subreddit = result.find('a', {'class':'search-subreddit-link'}).text
-        value = {'title':title, 'date':str(date), 'score':score, 'author':author, 'subreddit':subreddit,
-                 'comments':{'count':numComments, 'link':commentsLink}}
+        numComments, commentsLink = parseComments(result.find('a', {'class':'search-comments'}))
+        value = {'title':title, 'date':str(date), 'score':score, 'author':author,
+                 'subreddit':subreddit, 'comments':{'count':numComments, 'link':commentsLink}}
         product.append(value)
         print("\n" + str(date)[:19] + ":", title, "\n", numComments, score, author, subreddit)
     print("newest post date:", lastDate)
     return product, lastDate
 
 def writeProduct(product, timestamp):
-    outFileName = args.keyword + ".json"
-    with open(outFileName, 'w') as f:
-        json.dump({'timestamp':timestamp, 'product':product}, f, indent=4)
+    with open(args.keyword + ".json", 'w', encoding='utf-8') as f:
+        json.dump({'timestamp':timestamp, 'product':product}, f, indent=4, ensure_ascii=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
