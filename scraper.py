@@ -27,6 +27,15 @@ def getSearchResults(searchUrl):
 def parseComments(commentsTag):
     numComments = int(commentsTag.text.replace(' comments', ''))
     commentsLink = commentsTag['href'] if numComments > 0 else '';
+    if numComments > 0:
+        commentsPage = createSoup(commentsLink)
+        commentsDiv = commentsPage.find('div', {'class':'sitetable nestedlisting'})
+        comments = commentsDiv.findAll('p', {'class':'parent'})
+        for comment in comments:
+            print(comment.find('a')['name'])
+        input()
+        print([comment.find('a')['name'] for comment in comments]) 
+        input()
     return numComments, commentsLink
 
 def processResults(results, product, startDate):
@@ -64,7 +73,7 @@ if __name__ == '__main__':
     try:
         data = json.load(open(args.keyword + ".json"))
         product = data['product']
-        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%d')
+        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
         print("newest post date:", startDate)
     except FileNotFoundError:
         print("WARNING: Database file not found. Creating a new one...")
