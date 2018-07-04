@@ -24,18 +24,24 @@ def getSearchResults(searchUrl):
         else:
             return results
 
+def parseCommentTree(commentsDiv):
+    print("\nPARSING COMMENT TREE...\n")
+    comments = commentsDiv.findAll('div', {'data-type':'comment'})
+    for comment in comments:
+        name = comment.find('p', {'class':'parent'}).find('a')['name']
+        payload = comment.find('div', {'class':'md'})
+        parent = comment.find('a', {'data-event-action':'parent'})
+        parentName = parent['href'][1:] if parent != None else '       '
+        parentName = '       ' if parentName == name else parentName
+        print(name, "parent:", parentName, payload.text.replace('\n','')[:80])
+
 def parseComments(commentsTag):
     numComments = int(commentsTag.text.replace(' comments', ''))
-    commentsLink = commentsTag['href'] if numComments > 0 else '';
+    commentsLink = commentsTag['href'] + '?sort=new' if numComments > 0 else '';
     if numComments > 0:
         commentsPage = createSoup(commentsLink)
         commentsDiv = commentsPage.find('div', {'class':'sitetable nestedlisting'})
-        comments = commentsDiv.findAll('p', {'class':'parent'})
-        for comment in comments:
-            print(comment.find('a')['name'])
-        input()
-        print([comment.find('a')['name'] for comment in comments]) 
-        input()
+        parseCommentTree(commentsDiv)
     return numComments, commentsLink
 
 def processResults(results, product, startDate):
