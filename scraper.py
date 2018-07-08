@@ -24,25 +24,20 @@ def getSearchResults(searchUrl):
         else:
             return results
 
-def parseCommentTree(commentsDiv):
-    print("\nPARSING COMMENT TREE...\n")
+def parseComments(commentsUrl):
+    commentTree = {}
+    commentsPage = createSoup(commentsUrl)
+    commentsDiv = commentsPage.find('div', {'class':'sitetable nestedlisting'})
     comments = commentsDiv.findAll('div', {'data-type':'comment'})
     for comment in comments:
-        name = comment.find('p', {'class':'parent'}).find('a')['name']
-        payload = comment.find('div', {'class':'md'})
+        commentId = comment.find('p', {'class':'parent'}).find('a')['name']
+        content = comment.find('div', {'class':'md'}).text.replace('\n','')[:80]
         parent = comment.find('a', {'data-event-action':'parent'})
-        parentName = parent['href'][1:] if parent != None else '       '
-        parentName = '       ' if parentName == name else parentName
-        print(name, "parent:", parentName, payload.text.replace('\n','')[:80])
-
-def parseComments(commentsTag):
-    numComments = int(commentsTag.text.replace(' comments', ''))
-    commentsLink = commentsTag['href'] + '?sort=new' if numComments > 0 else '';
-    if numComments > 0:
-        commentsPage = createSoup(commentsLink)
-        commentsDiv = commentsPage.find('div', {'class':'sitetable nestedlisting'})
-        parseCommentTree(commentsDiv)
-    return numComments, commentsLink
+        parentId = parent['href'][1:] if parent != None else '       '
+        parentId = '       ' if parentId == commentId else parentId
+        print(commentId, "reply-to:", parentId, content)
+        commentTree[commentId] = {'reply-to':parentId, 'text':content}
+    return commentTree
 
 def processResults(results, product, startDate):
     lastDate = startDate
@@ -59,12 +54,14 @@ def processResults(results, product, startDate):
         score = int(re.match(r'\d+', score).group(0))
         author = result.find('a', {'class':'author'}).text
         subreddit = result.find('a', {'class':'search-subreddit-link'}).text
-        numComments, commentsLink = parseComments(result.find('a', {'class':'search-comments'}))
-        value = {'title':title, 'date':str(date), 'score':score, 'author':author,
-                 'subreddit':subreddit, 'comments':{'count':numComments, 'link':commentsLink}}
-        product.append(value)
+        commentsTag = result.find('a', {'class':'search-comments'})
+        url = commentsTag['href'] + '?sort=new'
+        numComments = int(commentsTag.text.replace(' comments', ''))
         print("\n" + str(date)[:19] + ":", title, "\n", numComments, score, author, subreddit)
-    print("newest post date:", lastDate)
+        commentTree = {} if numComments == 0 else parseComments(url)
+        product.append({'title':title, 'url':url, 'date':str(date), 'score':score, 'author':author,
+                        'subreddit':subreddit, 'comments':{'count':numComments, 'tree': commentTree}})
+    print("\n\nDATE OF THE MOST RECENT POST:", lastDate)
     return product, lastDate
 
 def writeProduct(product, timestamp):
