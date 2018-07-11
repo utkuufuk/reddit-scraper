@@ -30,13 +30,16 @@ def parseComments(commentsUrl):
     commentsDiv = commentsPage.find('div', {'class':'sitetable nestedlisting'})
     comments = commentsDiv.findAll('div', {'data-type':'comment'})
     for comment in comments:
+        numReplies = int(comment['data-replies'])
         commentId = comment.find('p', {'class':'parent'}).find('a')['name']
         content = comment.find('div', {'class':'md'}).text.replace('\n','')[:80]
+        score = comment.find('span', {'class':'score unvoted'}).text
+        score = int(re.match(r'[+-]?\d+', score).group(0))
         parent = comment.find('a', {'data-event-action':'parent'})
         parentId = parent['href'][1:] if parent != None else '       '
         parentId = '       ' if parentId == commentId else parentId
-        print(commentId, "reply-to:", parentId, content)
-        commentTree[commentId] = {'reply-to':parentId, 'text':content}
+        print(commentId, "reply-to:", parentId, "num-replies:", numReplies, content)
+        commentTree[commentId] = {'reply-to':parentId, 'text':content, 'score':score, 'num-replies':numReplies}
     return commentTree
 
 def processResults(results, product, startDate):
@@ -51,7 +54,7 @@ def processResults(results, product, startDate):
             lastDate = date
         title = result.find('a', {'class':'search-title'}).text
         score = result.find('span', {'class':'search-score'}).text
-        score = int(re.match(r'\d+', score).group(0))
+        score = int(re.match(r'[+-]?\d+', score).group(0))
         author = result.find('a', {'class':'author'}).text
         subreddit = result.find('a', {'class':'search-subreddit-link'}).text
         commentsTag = result.find('a', {'class':'search-comments'})
@@ -76,7 +79,7 @@ if __name__ == '__main__':
     try:
         data = json.load(open(args.keyword + ".json"))
         product = data['product']
-        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
+        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
         print("newest post date:", startDate)
     except FileNotFoundError:
         print("WARNING: Database file not found. Creating a new one...")
