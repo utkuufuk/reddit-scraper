@@ -14,15 +14,15 @@ def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':REQUEST_AGENT}).text, 'lxml')
 
 def getSearchResults(searchUrl):
-    results = []
+    posts = []
     while True:
         resultPage = createSoup(searchUrl)
-        results += resultPage.findAll('div', {'class':'search-result-link'})
+        posts += resultPage.findAll('div', {'class':'search-result-link'})
         footer = resultPage.findAll('a', {'rel':'nofollow next'})
         if footer:
             searchUrl = footer[-1]['href']
         else:
-            return results
+            return posts
 
 def parseComments(commentsUrl):
     commentTree = {}
@@ -42,22 +42,22 @@ def parseComments(commentsUrl):
         commentTree[commentId] = {'reply-to':parentId, 'text':content, 'score':score, 'num-replies':numReplies}
     return commentTree
 
-def processResults(results, product, startDate):
+def processPosts(posts, product, startDate):
     lastDate = startDate
-    for result in results:
-        time = result.find('time')['datetime']
+    for post in posts:
+        time = post.find('time')['datetime']
         date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
         if date < startDate:
             print("older date encountered: ", str(date))
             return product, lastDate
         if date > lastDate:
             lastDate = date
-        title = result.find('a', {'class':'search-title'}).text
-        score = result.find('span', {'class':'search-score'}).text
+        title = post.find('a', {'class':'search-title'}).text
+        score = post.find('span', {'class':'search-score'}).text
         score = int(re.match(r'[+-]?\d+', score).group(0))
-        author = result.find('a', {'class':'author'}).text
-        subreddit = result.find('a', {'class':'search-subreddit-link'}).text
-        commentsTag = result.find('a', {'class':'search-comments'})
+        author = post.find('a', {'class':'author'}).text
+        subreddit = post.find('a', {'class':'search-subreddit-link'}).text
+        commentsTag = post.find('a', {'class':'search-comments'})
         url = commentsTag['href'] + '?sort=new'
         numComments = int(commentsTag.text.replace(' comments', ''))
         print("\n" + str(date)[:19] + ":", title, "\n", numComments, score, author, subreddit)
@@ -88,6 +88,6 @@ if __name__ == '__main__':
 
     searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
     print("Search URL:", searchUrl)
-    results = getSearchResults(searchUrl)
-    product, timestamp = processResults(results, product, startDate) 
+    posts = getSearchResults(searchUrl)
+    product, timestamp = processPosts(posts, product, startDate) 
     writeProduct(product, str(timestamp))
