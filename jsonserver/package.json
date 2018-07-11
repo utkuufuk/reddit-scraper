@@ -1,0 +1,14 @@
+{
+  "name": "jsonserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "json:server": "json-server --watch ../uzay.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "json-server": "^0.14.0"
+  }
+}
