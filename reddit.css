@@ -1,0 +1,22 @@
+body {
+    background: #fafafa;
+    font-family: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    color: #333;
+    padding: 50px;
+}
+
+a {
+    color: #00B7FF;
+}
+
+ul {
+    padding: 0;
+    width: 1000px;
+}
+
+ul li {
+    list-style-type: none;
+    background: #EFEFEF;
+    padding: 10px;
+    margin-bottom: 10px;
+}
