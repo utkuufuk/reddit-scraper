@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "json:server": "json-server --watch ../uzay.json"
+    "json:server": "json-server --watch ../product.json"
   },
   "author": "",
   "license": "ISC",

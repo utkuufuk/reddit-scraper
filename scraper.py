@@ -5,10 +5,10 @@ import requests
 import json
 import re
 
-SITE_URL = "https://old.reddit.com/"
-DEFAULT_KEYWORD = "uzay"
-REQUEST_AGENT = "Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36"
-TRESHOLD_DATE = datetime(year=2017, month=1, day=1)
+SITE_URL = 'https://old.reddit.com/'
+DEFAULT_KEYWORD = "ayn rand"
+REQUEST_AGENT = 'Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36'
+TRESHOLD_DATE = datetime(year=2017, month=7, day=1)
 
 def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':REQUEST_AGENT}).text, 'lxml')
@@ -32,24 +32,29 @@ def parseComments(commentsUrl):
     for comment in comments:
         numReplies = int(comment['data-replies'])
         commentId = comment.find('p', {'class':'parent'}).find('a')['name']
-        content = comment.find('div', {'class':'md'}).text.replace('\n','')[:80]
-        score = comment.find('span', {'class':'score unvoted'}).text
-        score = int(re.match(r'[+-]?\d+', score).group(0))
+        content = comment.find('div', {'class':'md'}).text.replace('\n','')
+        score = comment.find('span', {'class':'score unvoted'})
+        score = 0 if score == None else int(re.match(r'[+-]?\d+', score.text).group(0))
         parent = comment.find('a', {'data-event-action':'parent'})
         parentId = parent['href'][1:] if parent != None else '       '
         parentId = '       ' if parentId == commentId else parentId
-        print(commentId, "reply-to:", parentId, "num-replies:", numReplies, content)
-        commentTree[commentId] = {'reply-to':parentId, 'text':content, 'score':score, 'num-replies':numReplies}
+        print(commentId, "reply-to:", parentId, "num-replies:", numReplies, content[:63])
+        commentTree[commentId] = {'reply-to':parentId, 'text':content,
+                                  'score':score, 'num-replies':numReplies}
     return commentTree
 
-def processPosts(posts, product, startDate):
+def processPosts(posts, product, startDate, keyword):
+    if keyword not in product:
+        product[keyword] = {}
+        product[keyword]['posts'] = []
     lastDate = startDate
     for post in posts:
         time = post.find('time')['datetime']
         date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
         if date < startDate:
-            print("older date encountered: ", str(date))
-            return product, lastDate
+            print('older date encountered: ', str(date))
+            product[keyword]['timestamp'] = str(lastDate)
+            return product
         if date > lastDate:
             lastDate = date
         title = post.find('a', {'class':'search-title'}).text
@@ -59,35 +64,34 @@ def processPosts(posts, product, startDate):
         subreddit = post.find('a', {'class':'search-subreddit-link'}).text
         commentsTag = post.find('a', {'class':'search-comments'})
         url = commentsTag['href'] + '?sort=new'
-        numComments = int(commentsTag.text.replace(' comments', ''))
-        print("\n" + str(date)[:19] + ":", title, "\n", numComments, score, author, subreddit)
+        numComments = int(re.match(r'\d+', commentsTag.text).group(0))
+        print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
         commentTree = {} if numComments == 0 else parseComments(url)
-        product.append({'title':title, 'url':url, 'date':str(date), 'score':score, 'author':author,
-                        'subreddit':subreddit, 'comments':{'count':numComments, 'tree': commentTree}})
-    print("\n\nDATE OF THE MOST RECENT POST:", lastDate)
-    return product, lastDate
-
-def writeProduct(product, timestamp):
-    with open(args.keyword + ".json", 'w', encoding='utf-8') as f:
-        json.dump({'timestamp':timestamp, 'product':product}, f, indent=4, ensure_ascii=False)
+        product[keyword]['posts'].append({'title':title, 'url':url, 'date':str(date),
+                                          'score':score, 'author':author,
+                                          'subreddit':subreddit, 'comments':commentTree})
+    print('\n\nDATE OF THE MOST RECENT POST:', lastDate)
+    product[keyword]['timestamp'] = str(lastDate)
+    return product
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help="keyword to search")
+    parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help='keyword to search')
     args = parser.parse_args()
-
     try:
-        data = json.load(open(args.keyword + ".json"))
-        product = data['product']
-        startDate = datetime.strptime(data['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
-        print("newest post date:", startDate)
+        product = json.load(open('product.json'))
+        startDate = datetime.strptime(product[args.keyword]['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
+        print('newest post date:', startDate)
     except FileNotFoundError:
-        print("WARNING: Database file not found. Creating a new one...")
-        product = []
+        print('WARNING: Database file not found. Creating a new one...')
+        product = {}
         startDate = TRESHOLD_DATE
-
-    searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
-    print("Search URL:", searchUrl)
+    except KeyError:
+        print('WARNING: Keyword not found in database. Initializing...')
+        startDate = TRESHOLD_DATE
+    searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=week'
+    print('Search URL:', searchUrl)
     posts = getSearchResults(searchUrl)
-    product, timestamp = processPosts(posts, product, startDate) 
-    writeProduct(product, str(timestamp))
+    product = processPosts(posts, product, startDate, args.keyword.replace(' ', '-')) 
+    with open('product.json', 'w', encoding='utf-8') as f:
+        json.dump(product, f, indent=4, ensure_ascii=False)
