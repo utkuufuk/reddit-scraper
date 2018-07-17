@@ -7,6 +7,7 @@ import re
 
 SITE_URL = 'https://old.reddit.com/'
 DEFAULT_KEYWORD = "ayn rand"
+DEFAULT_SUBREDDIT = None
 REQUEST_AGENT = 'Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36'
 TRESHOLD_DATE = datetime(year=2017, month=7, day=1)
 
@@ -39,8 +40,7 @@ def parseComments(commentsUrl):
         parentId = parent['href'][1:] if parent != None else '       '
         parentId = '       ' if parentId == commentId else parentId
         print(commentId, "reply-to:", parentId, "num-replies:", numReplies, content[:63])
-        commentTree[commentId] = {'reply-to':parentId, 'text':content,
-                                  'score':score, 'num-replies':numReplies}
+        commentTree[commentId] = {'reply-to':parentId, 'text':content, 'score':score, 'num-replies':numReplies}
     return commentTree
 
 def processPosts(posts, product, startDate, keyword):
@@ -67,9 +67,8 @@ def processPosts(posts, product, startDate, keyword):
         numComments = int(re.match(r'\d+', commentsTag.text).group(0))
         print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
         commentTree = {} if numComments == 0 else parseComments(url)
-        product[keyword]['posts'].append({'title':title, 'url':url, 'date':str(date),
-                                          'score':score, 'author':author,
-                                          'subreddit':subreddit, 'comments':commentTree})
+        product[keyword]['posts'].append({'title':title, 'url':url, 'date':str(date), 'score':score,
+                                          'author':author, 'subreddit':subreddit, 'comments':commentTree})
     print('\n\nDATE OF THE MOST RECENT POST:', lastDate)
     product[keyword]['timestamp'] = str(lastDate)
     return product
@@ -77,7 +76,13 @@ def processPosts(posts, product, startDate, keyword):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help='keyword to search')
+    parser.add_argument('--subreddit', type=str, default=DEFAULT_SUBREDDIT, help='subreddit to search')
     args = parser.parse_args()
+    if args.subreddit == None:
+        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
+    else:
+        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new&t=year'
+    print('Search URL:', searchUrl)
     try:
         product = json.load(open('product.json'))
         startDate = datetime.strptime(product[args.keyword]['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
@@ -89,8 +94,6 @@ if __name__ == '__main__':
     except KeyError:
         print('WARNING: Keyword not found in database. Initializing...')
         startDate = TRESHOLD_DATE
-    searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=week'
-    print('Search URL:', searchUrl)
     posts = getSearchResults(searchUrl)
     product = processPosts(posts, product, startDate, args.keyword.replace(' ', '-')) 
     with open('product.json', 'w', encoding='utf-8') as f:
