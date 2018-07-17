@@ -96,5 +96,6 @@ if __name__ == '__main__':
         startDate = TRESHOLD_DATE
     posts = getSearchResults(searchUrl)
     product = processPosts(posts, product, startDate, args.keyword.replace(' ', '-')) 
+    product[args.keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
