@@ -6,7 +6,7 @@ import json
 import re
 
 SITE_URL = 'https://old.reddit.com/'
-DEFAULT_KEYWORD = "ayn rand"
+DEFAULT_KEYWORD = "jojo mayer"
 DEFAULT_SUBREDDIT = None
 REQUEST_AGENT = 'Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36'
 TRESHOLD_DATE = datetime(year=2017, month=7, day=1)
@@ -96,6 +96,6 @@ if __name__ == '__main__':
         startDate = TRESHOLD_DATE
     posts = getSearchResults(searchUrl)
     product = processPosts(posts, product, startDate, args.keyword.replace(' ', '-')) 
-    product[args.keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
+    product[args.keyword.replace(' ', '-')]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
