@@ -1,33 +1,31 @@
 'use strict';
 
 $(function() {
-    // cache some HTML elements
     var $posts = $('#posts');
     var $keywords = $('#keywords');
 
-    // creates an order <li> in the HTML document
     function addPost(post) {
         $posts.append('<li><strong>Title:</strong> ' + post.title + '<br>' +
-                       '<strong>Author:</strong> ' + post.author + '<br>' +
-                       '<strong>Score:</strong> ' + post.score + '<br>' +
-                       '<strong>Date:</strong> ' + post.date + '<br>' +
-                       '<strong>Subreddit:</strong> ' + post.subreddit + '<br>' +
-                       '<strong>URL:</strong> ' + post.url + '<br>' +
-                       '<button data-id=' + post.id + ' class="expand">Show Comments</button></li>');
+                      '<strong>Author:</strong> ' + post.author + '<br>' +
+                      '<strong>Score:</strong> ' + post.score + '<br>' +
+                      '<strong>Date:</strong> ' + post.date + '<br>' +
+                      '<strong>Subreddit:</strong> ' + post.subreddit + '<br>' +
+                      '<strong>URL:</strong> ' + post.url + '<br>' +
+                      '<button data-id=' + post.id + ' class="expand">Show Comments</button></li>');
     }
 
-    function addKeyword(keyword) {
-        $keywords.append('<li><strong>' + keyword + '</strong><br>' + '</li>');
+    function addKeyword(keyword, product) {
+        $keywords.append('<br><strong>' + keyword + '</strong><br>');
+        $keywords.append('<li><strong>Last Crawl Date:</strong>' + product[keyword]['timestamp'] + '</li>');
+        $keywords.append('<li><strong>Subreddit: </strong> r/' + product[keyword]['subreddit'] + '</li>');
     }
 
-    // fetch & display all posts
     $.ajax({
         type: 'GET',
         url: 'http://localhost:3000/db/',
         success: function(product) {
-            // write retrieved keywords into HTML
             $.each(Object.keys(product), function(i, keyword) {
-                addKeyword(keyword);
+                addKeyword(keyword, product);
             });
         },
         error: function() {
