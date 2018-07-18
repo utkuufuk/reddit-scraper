@@ -1,6 +1,8 @@
 'use strict';
 
 $(function() {
+    let postsHidden = false;
+    let keywords = [];
     let $keywords = $('#keywords');
 
     function addPost(post, $posts) {
@@ -17,16 +19,18 @@ $(function() {
         $keywords.append('<li><strong>' + keyword + '</strong><br>' +
                          '<strong>Last Crawl Date: </strong>' + product[keyword]['timestamp'] + '<br>' +
                          '<strong>Subreddit: </strong> r/' + product[keyword]['subreddit'] + '<br>' +
-                         '<button data-id="' + keyword + '" class="show-posts">Show Posts</button>' +
+                         '<button keyword="' + keyword + '" class="toggle-posts">Show Posts</button>' +
                          '<ul class="posts"></ul></li>');
     }
 
     $.ajax({
         type: 'GET',
+        async: false,
         url: 'http://localhost:3000/db/',
         success: function(product) {
             $.each(Object.keys(product), function(i, keyword) {
                 addKeyword(keyword, product);
+                keywords[i] = keyword;
             });
         },
         error: function() {
@@ -34,9 +38,10 @@ $(function() {
         }
     });
 
-    $keywords.on('click', '.show-posts', function() {
-        let $posts = $(this).closest('li').find('.posts');
-        let keyword = $(this).attr('data-id');
+    for (let k = 0; k < keywords.length; k++) {
+        let $posts = $('.posts').eq(k);
+        let keyword = keywords[k];
+        $posts.hide();
 
         $.ajax({
             type: 'GET',
@@ -48,6 +53,21 @@ $(function() {
             },
             error: function() {
                 alert('error loading posts');
+            }
+        });
+    }
+
+    $keywords.on('click', '.toggle-posts', function() {
+        let $posts = $(this).closest('li').find('.posts');
+        let $button = $(this).closest('li').find('.toggle-posts');
+        $posts.slideToggle(500, function() {
+            if (postsHidden) {
+                $button.html('Show Posts');
+                postsHidden = false;
+            }
+            else {
+                $button.html('Hide Posts');
+                postsHidden = true;
             }
         });
     });
