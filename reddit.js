@@ -2,17 +2,28 @@
 
 $(function() {
     let postsHidden = {};
+    let commentsHidden = {};
     let keywords = [];
     let $keywords = $('#keywords');
 
+    function addComment(comment, $comments) {
+        $comments.append('<li><strong>Text: </strong>' + comment.text + '<br>' +
+                         '<strong>Author: </strong>' + comment.author + '<br>' +
+                         '<strong>Date: </strong>' + comment.date + '<br>' +
+                         '<strong>Score: </strong>' + comment.score + '<br>' +
+                         '<strong>Number of Replies: </strong>' + comment['num-replies'] + '<br>' +
+                         '<strong>Reply To: </strong>' + comment['reply-to'] + '</li>');
+    }
+
     function addPost(post, $posts) {
+        let postId = post.date.replace(/\s/g, "");
         $posts.append('<li><strong>Title: </strong>' + post.title + '<br>' +
                       '<strong>Author: </strong>' + post.author + '<br>' +
                       '<strong>Score: </strong>' + post.score + '<br>' +
                       '<strong>Date: </strong>' + post.date + '<br>' +
                       '<strong>Subreddit: </strong>' + post.subreddit + '<br>' +
                       '<strong>URL: </strong>' + post.url + '<br>' +
-                      '<button post-id=' + post.id + ' class="toggle-comments">Show Comments</button>' +
+                      '<button post-id=' + postId + ' class="toggle-comments">Show Comments</button>' +
                       '<ul class="comments"></ul></li>');
     }
 
@@ -51,6 +62,15 @@ $(function() {
             success: function(product) {
                 $.each(product['posts'], function(i, post) {
                     addPost(post, $posts);
+                    let commentKeys = Object.keys(post['comments']);
+
+                    for (let c = 0; c < commentKeys.length; c++) {
+                        let $comments = $posts.find('.comments').eq(c);
+                        $comments.hide();
+                        commentsHidden[post.date.replace(/\s/g, "")] = true;
+                        addComment(post['comments'][commentKeys[c]], $comments);    
+                        console.log(post['comments'][commentKeys[c]]);
+                    }
                 });
             },
             error: function() {
@@ -79,14 +99,16 @@ $(function() {
     $keywords.on('click', '.toggle-comments', function() {
         let $comments = $(this).closest('li').find('.comments');
         let $button = $(this).closest('li').find('.toggle-comments');
+        let postId = $(this).attr('post-id'); 
+
         $comments.slideToggle(500, function() {
-            if (commentsHidden) {
+            if (commentsHidden[postId]) {
                 $button.html('Show Comments');
-                commentsHidden = false;
+                commentsHidden[postId] = false;
             }
             else {
                 $button.html('Hide Comments');
-                commentsHidden = true;
+                commentsHidden[postId] = true;
             }
         });
     });
