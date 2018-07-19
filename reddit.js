@@ -1,7 +1,7 @@
 'use strict';
 
 $(function() {
-    let postsHidden = false;
+    let postsHidden = {};
     let keywords = [];
     let $keywords = $('#keywords');
 
@@ -12,7 +12,8 @@ $(function() {
                       '<strong>Date: </strong>' + post.date + '<br>' +
                       '<strong>Subreddit: </strong>' + post.subreddit + '<br>' +
                       '<strong>URL: </strong>' + post.url + '<br>' +
-                      '<button data-id=' + post.id + ' class="expand">Show Comments</button></li>');
+                      '<button post-id=' + post.id + ' class="toggle-comments">Show Comments</button>' +
+                      '<ul class="comments"></ul></li>');
     }
 
     function addKeyword(keyword, product) {
@@ -41,6 +42,7 @@ $(function() {
     for (let k = 0; k < keywords.length; k++) {
         let $posts = $('.posts').eq(k);
         let keyword = keywords[k];
+        postsHidden[keyword] = true;
         $posts.hide();
 
         $.ajax({
@@ -60,14 +62,31 @@ $(function() {
     $keywords.on('click', '.toggle-posts', function() {
         let $posts = $(this).closest('li').find('.posts');
         let $button = $(this).closest('li').find('.toggle-posts');
+        let keyword = $(this).attr('keyword'); 
+
         $posts.slideToggle(500, function() {
-            if (postsHidden) {
-                $button.html('Show Posts');
-                postsHidden = false;
+            if (postsHidden[keyword]) {
+                $button.html('Hide Posts');
+                postsHidden[keyword] = false;
             }
             else {
-                $button.html('Hide Posts');
-                postsHidden = true;
+                $button.html('Show Posts');
+                postsHidden[keyword] = true;
+            }
+        });
+    });
+
+    $keywords.on('click', '.toggle-comments', function() {
+        let $comments = $(this).closest('li').find('.comments');
+        let $button = $(this).closest('li').find('.toggle-comments');
+        $comments.slideToggle(500, function() {
+            if (commentsHidden) {
+                $button.html('Show Comments');
+                commentsHidden = false;
+            }
+            else {
+                $button.html('Hide Comments');
+                commentsHidden = true;
             }
         });
     });
