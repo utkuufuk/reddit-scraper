@@ -32,8 +32,11 @@ def parseComments(commentsUrl):
     comments = commentsDiv.findAll('div', {'data-type':'comment'})
     for comment in comments:
         numReplies = int(comment['data-replies'])
-        author = comment.find('p', {'class':'tagline'}).find('a', {'class':'author'})
+        tagline = comment.find('p', {'class':'tagline'})
+        author = tagline.find('a', {'class':'author'})
         author = "[deleted]" if author == None else author.text
+        date = tagline.find('time')['datetime']
+        date = datetime.strptime(date[:19], '%Y-%m-%dT%H:%M:%S')
         commentId = comment.find('p', {'class':'parent'}).find('a')['name']
         content = comment.find('div', {'class':'md'}).text.replace('\n','')
         score = comment.find('span', {'class':'score unvoted'})
@@ -41,9 +44,9 @@ def parseComments(commentsUrl):
         parent = comment.find('a', {'data-event-action':'parent'})
         parentId = parent['href'][1:] if parent != None else '       '
         parentId = '       ' if parentId == commentId else parentId
-        print(commentId, 'reply-to:', parentId, 'num-replies:', numReplies, content[:63])
+        print(commentId, 'date:', date, 'reply-to:', parentId, 'num-replies:', numReplies, content[:63])
         commentTree[commentId] = {'author':author, 'reply-to':parentId, 'text':content,
-                                  'score':score, 'num-replies':numReplies}
+                                  'score':score, 'num-replies':numReplies, 'date':str(date)}
     return commentTree
 
 def processPosts(posts, product, startDate, keyword):
