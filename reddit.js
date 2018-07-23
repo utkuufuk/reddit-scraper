@@ -6,6 +6,20 @@ $(function() {
     let keywords = [];
     let $keywords = $('#keywords');
 
+    function toggleButton($element, $button, name, flagId, flagMap)
+    {
+         $element.slideToggle(500, function() {
+            if (flagMap[flagId]) {
+                $button.html('Hide ' + name);
+                commentsHidden[flagId] = false;
+            }
+            else {
+                $button.html('Show ' + name);
+                flagMap[flagId] = true;
+            }
+        });
+    }
+
     function addComment(comment, commentId, $comments) {
         $comments.append('<li><strong>ID: </strong>' + commentId + '<br>' +
                          '<strong>Text: </strong>' + comment.text + '<br>' +
@@ -85,33 +99,13 @@ $(function() {
         let $posts = $(this).closest('li').find('.posts');
         let $button = $(this).closest('li').find('.toggle-posts');
         let keyword = $(this).attr('keyword'); 
-
-        $posts.slideToggle(500, function() {
-            if (postsHidden[keyword]) {
-                $button.html('Hide Posts');
-                postsHidden[keyword] = false;
-            }
-            else {
-                $button.html('Show Posts');
-                postsHidden[keyword] = true;
-            }
-        });
+        toggleButton($posts, $button, "Posts", keyword, postsHidden)
     });
 
     $keywords.on('click', '.toggle-comments', function() {
         let $comments = $(this).closest('li').find('.comments');
         let $button = $(this).closest('li').find('.toggle-comments');
         let postId = $(this).attr('post-id'); 
-
-        $comments.slideToggle(500, function() {
-            if (commentsHidden[postId]) {
-                $button.html('Hide Comments');
-                commentsHidden[postId] = false;
-            }
-            else {
-                $button.html('Show Comments');
-                commentsHidden[postId] = true;
-            }
-        });
+        toggleButton($comments, $button, "Comments", postId, commentsHidden)
     });
 });
