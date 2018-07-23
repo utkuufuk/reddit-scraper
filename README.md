@@ -24,7 +24,7 @@ pip3 install beautifulsoup4
 ```
 
 ## Usage
-This tool is made up of two parts; a web scraper and a dynamic HTML page for visualizing the results.
+This tool is made up of two parts; a web scraper and a dynamic web page for visualizing the results.
 The scraped data is stored in a file called `product.json`, and it is served by [Json-Server](https://github.com/typicode/json-server) to the front-end for visualization.
 
 ### Scraping
