@@ -20,23 +20,19 @@ ul li {
     margin-bottom: 10px;
 }
 
-#keywords {
+.posts {
     background: #fdffe0;
 }
 
 .comments {
-    padding-left: 40px;
-    background: #ffe0fb;
-}
-
-.posts {
     background: #e0efff;
+    padding-left: 40px;
 }
 
 hr { 
     display: block;
     margin-top: 0.5em;
-    margin-bottom: 0.5em;
+    margin-bottom: 0;
     margin-left: auto;
     margin-right: auto;
     border-style: inset;

@@ -22,23 +22,22 @@ $(function() {
 
     function addComment(comment, commentId, $comments) {
         $comments.append('<li><div class="hl"></div><strong>ID: </strong>' + commentId + '<br>' +
-                         '<strong>Text: </strong>' + comment.text + '<br>' +
                          '<strong>Author: </strong>' + comment.author + '<br>' +
                          '<strong>Date: </strong>' + comment.date + '<br>' +
                          '<strong>Score: </strong>' + comment.score + '<br>' +
                          '<strong>Number of Replies: </strong>' + comment['num-replies'] + '<br>' +
-                         '<strong>Reply To: </strong>' + comment['reply-to'] + '<hr></li>');
+                         '<strong>Reply To: </strong>' + comment['reply-to'] + 
+                         '<p>' + comment.text + '</p><hr></li>');
     }
 
     function addPost(post, $posts) {
         let postId = post.date.replace(/\s/g, "");
         let numComments = Object.keys(post['comments']).length;
-        $posts.append('<li><strong>Title: </strong>' + post.title + '<br>' +
+        $posts.append('<li><a href="' + post.url + '">' + post.title + '</a><br>' +
                       '<strong>Author: </strong>' + post.author + '<br>' +
                       '<strong>Score: </strong>' + post.score + '<br>' +
                       '<strong>Date: </strong>' + post.date + '<br>' +
                       '<strong>Subreddit: </strong>' + post.subreddit + '<br>' +
-                      '<strong>URL: </strong>' + post.url + '<br>' +
                       '<strong>Number of Comments: </strong>' + numComments + '<br>' +
                       '<button post-id=' + postId + ' class="toggle-comments">Show Comments</button>' +
                       '<ul class="comments"></ul><hr></li>');
@@ -50,7 +49,7 @@ $(function() {
     }
 
     function addKeyword(keyword, product) {
-        $keywords.append('<li><strong>' + keyword + '</strong><br>' +
+        $keywords.append('<li><strong><i style="color:teal;font-size:20px;">' + keyword + '</i></strong><br>' +
                          '<strong>Last Crawl Date: </strong>' + product[keyword]['timestamp'] + '<br>' +
                          '<strong>Subreddit: </strong> r/' + product[keyword]['subreddit'] + '<br>' +
                          '<strong>Number of Posts: </strong>' + product[keyword]['posts'].length + '<br>' +
