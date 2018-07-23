@@ -21,38 +21,67 @@ $(function() {
     }
 
     function addComment(comment, commentId, $comments) {
-        $comments.append('<li><div class="hl"></div><strong>ID: </strong>' + commentId + '<br>' +
-                         '<strong>Author: </strong>' + comment.author + '<br>' +
-                         '<strong>Date: </strong>' + comment.date + '<br>' +
-                         '<strong>Score: </strong>' + comment.score + '<br>' +
-                         '<strong>Number of Replies: </strong>' + comment['num-replies'] + '<br>' +
-                         '<strong>Reply To: </strong>' + comment['reply-to'] + 
+        $comments.append('<li><div class="hl"></div><b>ID: </b>' + commentId + '<br>' +
+                         '<b>Author: </b>' + comment.author + '<br>' +
+                         '<b>Date: </b>' + comment.date + '<br>' +
+                         '<b>Score: </b>' + comment.score + '<br>' +
+                         '<b>Number of Replies: </b>' + comment['num-replies'] + '<br>' +
+                         '<b>Reply To: </b>' + comment['reply-to'] + 
                          '<p>' + comment.text + '</p><hr></li>');
     }
 
     function addPost(post, $posts) {
         let postId = post.date.replace(/\s/g, "");
         let numComments = Object.keys(post['comments']).length;
+        let commentRating = 0;
+        let highestCommentRating = 0;
+        let bestCommentId = "";
+
+        Object.keys(post['comments']).forEach(function(key) {
+            commentRating += post['comments'][key]['score'];
+            if (post['comments'][key]['score'] > highestCommentRating) {
+                highestCommentRating = post['comments'][key]['score'];
+                bestCommentId = key;
+            }
+        });
+
         $posts.append('<li><a href="' + post.url + '">' + post.title + '</a><br>' +
-                      '<strong>Author: </strong>' + post.author + '<br>' +
-                      '<strong>Score: </strong>' + post.score + '<br>' +
-                      '<strong>Date: </strong>' + post.date + '<br>' +
-                      '<strong>Subreddit: </strong>' + post.subreddit + '<br>' +
-                      '<strong>Number of Comments: </strong>' + numComments + '<br>' +
+                      '<b>Author: </b>' + post.author + '<br>' +
+                      '<b>Score: </b>' + post.score + '<br>' +
+                      '<b>Date: </b>' + post.date + '<br>' +
+                      '<b>Subreddit: </b>' + post.subreddit + '<br>' +
+                      '<b>Number of Comments: </b>' + numComments + '<br>' +
+                      '<b>Average Comment Rating: </b>' + Math.round(commentRating / numComments) + '<br>' +
+                      '<b>Highest Rated Comment: </b>' + bestCommentId + '<br>' +
                       '<button post-id=' + postId + ' class="toggle-comments">Show Comments</button>' +
                       '<ul class="comments"></ul><hr></li>');
 
-        if (numComments == 0)
-        {
+        if (numComments == 0) {
             $("button[post-id='" + postId + "']").hide();
         }
     }
 
     function addKeyword(keyword, product) {
-        $keywords.append('<li><strong><i style="color:teal;font-size:20px;">' + keyword + '</i></strong><br>' +
-                         '<strong>Last Crawl Date: </strong>' + product[keyword]['timestamp'] + '<br>' +
-                         '<strong>Subreddit: </strong> r/' + product[keyword]['subreddit'] + '<br>' +
-                         '<strong>Number of Posts: </strong>' + product[keyword]['posts'].length + '<br>' +
+        let sub = product[keyword]['subreddit'];
+        let postRating = 0;
+        let highestPostRating = 0;
+        let bestPostUrl = "";
+        let bestPostTitle = "";
+
+        for (let post of product[keyword]['posts']) {
+            postRating += post['score'];
+            if (post['score'] > highestPostRating) {
+                highestPostRating = post['score'];
+                bestPostUrl = post.url;
+                bestPostTitle = post.title;
+            }
+        }
+        $keywords.append('<li><b><i style="color:teal;font-size:20px;">' + keyword + '</i></b><br>' +
+                         '<b>Last Crawl Date: </b>' + product[keyword]['timestamp'] + '<br>' +
+                         '<b>Subreddit: </b><a href=https://www.reddit.com/r/' + sub + '>r/' + sub + '</a><br>' +
+                         '<b>Number of Posts: </b>' + product[keyword]['posts'].length + '<br>' +
+                         '<b>Average Post Rating: </b>' + Math.round(postRating / product[keyword]['posts'].length) + '<br>' +
+                         '<b>Highest Rated Post: </b><a href="' + bestPostUrl + '">' + bestPostTitle + '</a><br>' +
                          '<button keyword="' + keyword + '" class="toggle-posts">Show Posts</button>' +
                          '<ul class="posts"></ul><hr></li>');
     }
