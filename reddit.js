@@ -20,14 +20,15 @@ $(function() {
         });
     }
 
-    function addComment(comment, commentId, $comments) {
-        $comments.append('<li><div class="hl"></div><b>ID: </b>' + commentId + '<br>' +
+    function addComment(comment, id, postUrl, $comments) {
+        $comments.append('<li><div class="hl"></div>' + 
+                         '<b>ID: </b><a href="' + postUrl.replace('?sort=new', id) + '">' + id + '</a><br>' +
                          '<b>Author: </b>' + comment.author + '<br>' +
                          '<b>Date: </b>' + comment.date + '<br>' +
                          '<b>Score: </b>' + comment.score + '<br>' +
                          '<b>Number of Replies: </b>' + comment['num-replies'] + '<br>' +
-                         '<b>Reply To: </b>' + comment['reply-to'] + 
-                         '<p>' + comment.text + '</p><hr></li>');
+                         '<b>Reply To: </b><a href="' + postUrl.replace('?sort=new', comment['reply-to']) + 
+                         '">' + comment['reply-to'] + '</a><br><p>' + comment.text + '</p><hr></li>');
     }
 
     function addPost(post, $posts) {
@@ -52,7 +53,8 @@ $(function() {
                       '<b>Subreddit: </b>' + post.subreddit + '<br>' +
                       '<b>Number of Comments: </b>' + numComments + '<br>' +
                       '<b>Average Comment Rating: </b>' + Math.round(commentRating / numComments) + '<br>' +
-                      '<b>Highest Rated Comment: </b>' + bestCommentId + '<br>' +
+                      '<b>Highest Rated Comment ID: </b><a href="' + post.url.replace('?sort=new', bestCommentId) + 
+                      '">' + bestCommentId + '</a><br>' +
                       '<button post-id=' + postId + ' class="toggle-comments">Show Comments</button>' +
                       '<ul class="comments"></ul><hr></li>');
 
@@ -119,7 +121,7 @@ $(function() {
                         let $comments = $posts.find('.comments').eq(i);
                         $comments.hide();
                         commentsHidden[post.date.replace(/\s/g, "")] = true;
-                        addComment(post['comments'][commentKeys[c]], commentKeys[c], $comments);    
+                        addComment(post['comments'][commentKeys[c]], commentKeys[c], post.url, $comments);
                     }
                 });
             },
