@@ -12,7 +12,7 @@ sudo apt-get install -y nodejs
 ```
 
 ### Setting up Json-Server
-Inside the [jsonserver](https://github.com/utkuufuk/reddit-scraper/tree/master/jsonserver) directory, run the following bash command:
+Inside the [jsonserver](https://github.com/utkuufuk/reddit-scraper/tree/master/jsonserver) directory, run the following bash command without modifying the existing files:
 ``` sh
 npm install --save json-server
 ```
@@ -31,13 +31,13 @@ The scraped data is stored in a file called `product.json`, and it is served by 
 You can make scraper limit its search by a specific subreddit, or you can make it search all subreddits.
 
 #### Searching for a Keyword in All Subreddits
-For example, in order to search for the keyword **uzay** in all subreddits, run the command below:
+For example, in order to search for the keyword **uzay** in all subreddits, run the command below inside the root project folder:
 ``` sh
 python3 scraper.py --keyword="uzay"
 ```
 
 #### Searching for a Keyword in All Subreddits
-In order to search for the keyword **ayn rand** in the subreddit **r/objectivism**, run the command below:
+In order to search for the keyword **ayn rand** in the subreddit **r/objectivism**, run the command below inside the root project folder:
 ``` sh
 python3 scraper.py --keyword="ayn rand" --subreddit="objectivism"
 ```
@@ -48,7 +48,7 @@ If there is an existing `product.json` file, the scraper will append the search 
 If the keyword already exists in `product.json`, the scraper will start searching from the date of the most recent post and append the new content at the end of the existing posts that had been earlier saved for that keyword.
 
 ### Visualization
-When the `product.json` file is ready, run the following command inside the [jsonserver](https://github.com/utkuufuk/reddit-scraper/tree/master/jsonserver) directory in order to start the [Json-Server](https://github.com/typicode/json-server):
+When the `product.json` file is ready for visualization, run the following command inside the [jsonserver](https://github.com/utkuufuk/reddit-scraper/tree/master/jsonserver) directory in order to start the [Json-Server](https://github.com/typicode/json-server):
 ``` sh
 npm run json:server
 ```
