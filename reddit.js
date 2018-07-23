@@ -21,26 +21,32 @@ $(function() {
     }
 
     function addComment(comment, commentId, $comments) {
-        $comments.append('<li><strong>ID: </strong>' + commentId + '<br>' +
+        $comments.append('<li><div class="hl"></div><strong>ID: </strong>' + commentId + '<br>' +
                          '<strong>Text: </strong>' + comment.text + '<br>' +
                          '<strong>Author: </strong>' + comment.author + '<br>' +
                          '<strong>Date: </strong>' + comment.date + '<br>' +
                          '<strong>Score: </strong>' + comment.score + '<br>' +
                          '<strong>Number of Replies: </strong>' + comment['num-replies'] + '<br>' +
-                         '<strong>Reply To: </strong>' + comment['reply-to'] + '</li>');
+                         '<strong>Reply To: </strong>' + comment['reply-to'] + '<hr></li>');
     }
 
     function addPost(post, $posts) {
         let postId = post.date.replace(/\s/g, "");
+        let numComments = Object.keys(post['comments']).length;
         $posts.append('<li><strong>Title: </strong>' + post.title + '<br>' +
                       '<strong>Author: </strong>' + post.author + '<br>' +
                       '<strong>Score: </strong>' + post.score + '<br>' +
                       '<strong>Date: </strong>' + post.date + '<br>' +
                       '<strong>Subreddit: </strong>' + post.subreddit + '<br>' +
                       '<strong>URL: </strong>' + post.url + '<br>' +
-                      '<strong>Number of Comments: </strong>' + Object.keys(post['comments']).length + '<br>' +
+                      '<strong>Number of Comments: </strong>' + numComments + '<br>' +
                       '<button post-id=' + postId + ' class="toggle-comments">Show Comments</button>' +
-                      '<ul class="comments"></ul></li>');
+                      '<ul class="comments"></ul><hr></li>');
+
+        if (numComments == 0)
+        {
+            $("button[post-id='" + postId + "']").hide();
+        }
     }
 
     function addKeyword(keyword, product) {
@@ -49,7 +55,7 @@ $(function() {
                          '<strong>Subreddit: </strong> r/' + product[keyword]['subreddit'] + '<br>' +
                          '<strong>Number of Posts: </strong>' + product[keyword]['posts'].length + '<br>' +
                          '<button keyword="' + keyword + '" class="toggle-posts">Show Posts</button>' +
-                         '<ul class="posts"></ul></li>');
+                         '<ul class="posts"></ul><hr></li>');
     }
 
     $.ajax({
