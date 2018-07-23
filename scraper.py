@@ -91,7 +91,7 @@ if __name__ == '__main__':
     print('Search URL:', searchUrl)
     try:
         product = json.load(open('product.json'))
-        startDate = datetime.strptime(product[args.keyword]['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
+        startDate = datetime.strptime(product[args.keyword.replace(' ', '-')]['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
         print('newest post date:', startDate)
     except FileNotFoundError:
         print('WARNING: Database file not found. Creating a new one...')
