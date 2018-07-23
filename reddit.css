@@ -16,7 +16,19 @@ ul {
 
 ul li {
     list-style-type: none;
-    background: #EFEFEF;
     padding: 10px;
     margin-bottom: 10px;
+}
+
+#keywords {
+    background: #fdffe0;
+}
+
+.comments {
+    padding-left: 40px;
+    background: #ffe0fb;
+}
+
+.posts {
+    background: #e0efff;
 }
