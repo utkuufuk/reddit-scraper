@@ -11,7 +11,7 @@ $(function() {
          $element.slideToggle(500, function() {
             if (flagMap[flagId]) {
                 $button.html('Hide ' + name);
-                commentsHidden[flagId] = false;
+                flagMap[flagId] = false;
             }
             else {
                 $button.html('Show ' + name);
