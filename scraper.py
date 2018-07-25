@@ -1,3 +1,4 @@
+from multiprocessing import Process, Manager
 from datetime import datetime
 from bs4 import BeautifulSoup
 import argparse
@@ -6,10 +7,7 @@ import json
 import re
 
 SITE_URL = 'https://old.reddit.com/'
-DEFAULT_KEYWORD = "jojo mayer"
-DEFAULT_SUBREDDIT = None
 REQUEST_AGENT = 'Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36'
-TRESHOLD_DATE = datetime(year=2000, month=7, day=1)
 
 def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':REQUEST_AGENT}).text, 'lxml')
@@ -49,59 +47,58 @@ def parseComments(commentsUrl):
                                   'score':score, 'num-replies':numReplies, 'date':str(date)}
     return commentTree
 
-def processPosts(posts, product, startDate, keyword):
-    if keyword not in product:
-        product[keyword] = {}
-        product[keyword]['posts'] = []
-    lastDate = startDate
-    for post in posts:
-        time = post.find('time')['datetime']
-        date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
-        if date < startDate:
-            print('older date encountered: ', str(date))
-            product[keyword]['timestamp'] = str(lastDate)
-            return product
-        if date > lastDate:
-            lastDate = date
-        title = post.find('a', {'class':'search-title'}).text
-        score = post.find('span', {'class':'search-score'}).text
-        score = int(re.match(r'[+-]?\d+', score).group(0))
-        author = post.find('a', {'class':'author'}).text
-        subreddit = post.find('a', {'class':'search-subreddit-link'}).text
-        commentsTag = post.find('a', {'class':'search-comments'})
-        url = commentsTag['href'] + '?sort=new'
-        numComments = int(re.match(r'\d+', commentsTag.text).group(0))
-        print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
-        commentTree = {} if numComments == 0 else parseComments(url)
-        product[keyword]['posts'].append({'title':title, 'url':url, 'date':str(date), 'score':score,
-                                          'author':author, 'subreddit':subreddit, 'comments':commentTree})
-    print('\n\nDATE OF THE MOST RECENT POST:', lastDate)
-    product[keyword]['timestamp'] = str(lastDate)
-    return product
+def processPost(post, results):
+    time = post.find('time')['datetime']
+    date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
+    title = post.find('a', {'class':'search-title'}).text
+    score = post.find('span', {'class':'search-score'}).text
+    score = int(re.match(r'[+-]?\d+', score).group(0))
+    author = post.find('a', {'class':'author'}).text
+    subreddit = post.find('a', {'class':'search-subreddit-link'}).text
+    commentsTag = post.find('a', {'class':'search-comments'})
+    url = commentsTag['href'] + '?sort=new'
+    numComments = int(re.match(r'\d+', commentsTag.text).group(0))
+    print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
+    commentTree = {} if numComments == 0 else parseComments(url)
+    results.append({'title':title, 'url':url, 'date':str(date), 'score':score,
+                    'author':author, 'subreddit':subreddit, 'comments':commentTree})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--keyword', type=str, default=DEFAULT_KEYWORD, help='keyword to search')
-    parser.add_argument('--subreddit', type=str, default=DEFAULT_SUBREDDIT, help='subreddit to search')
+    parser.add_argument('--keyword', type=str, help='keyword to search')
+    parser.add_argument('--subreddit', type=str, help='subreddit to search')
+    parser.add_argument('--restrict', type=str, help='date restriction (day, week, month or year)')
     args = parser.parse_args()
+    if args.keyword == None:
+        print('ERROR: No search keyword specified.')
+        exit()
     if args.subreddit == None:
         searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
     else:
         searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new'
-    print('Search URL:', searchUrl)
+    if args.restrict == 'day' or args.restrict == 'week' or args.restrict == 'month' or args.restrict == 'year':
+        searchUrl += '&t=' + args.restrict
+    elif args.restrict != None:
+        print('WARNING: Invalid date restriction parameter. Proceeding without any restrictions.')
     try:
         product = json.load(open('product.json'))
-        startDate = datetime.strptime(product[args.keyword.replace(' ', '-')]['timestamp'][:19], '%Y-%m-%d %H:%M:%S')
-        print('newest post date:', startDate)
     except FileNotFoundError:
         print('WARNING: Database file not found. Creating a new one...')
         product = {}
-        startDate = TRESHOLD_DATE
-    except KeyError:
-        print('WARNING: Keyword not found in database. Initializing...')
-        startDate = TRESHOLD_DATE
+    print('Search URL:', searchUrl)
     posts = getSearchResults(searchUrl)
-    product = processPosts(posts, product, startDate, args.keyword.replace(' ', '-')) 
-    product[args.keyword.replace(' ', '-')]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
+    print('Started scraping', len(posts), 'posts.')
+    keyword = args.keyword.replace(' ', '-')
+    product[keyword] = {}
+    product[keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
+    results = Manager().list()
+    processes = []
+    for post in posts:
+        process = Process(target=processPost, args=(post, results))
+        processes.append(process)
+        process.start()
+    for process in processes:
+        process.join()
+    product[keyword]['posts'] = list(results)
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
