@@ -1,4 +1,3 @@
-from multiprocessing import Process, Manager
 from datetime import datetime
 from bs4 import BeautifulSoup
 import argparse
@@ -47,21 +46,25 @@ def parseComments(commentsUrl):
                                   'score':score, 'num-replies':numReplies, 'date':str(date)}
     return commentTree
 
-def processPost(post, results):
-    time = post.find('time')['datetime']
-    date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
-    title = post.find('a', {'class':'search-title'}).text
-    score = post.find('span', {'class':'search-score'}).text
-    score = int(re.match(r'[+-]?\d+', score).group(0))
-    author = post.find('a', {'class':'author'}).text
-    subreddit = post.find('a', {'class':'search-subreddit-link'}).text
-    commentsTag = post.find('a', {'class':'search-comments'})
-    url = commentsTag['href'] + '?sort=new'
-    numComments = int(re.match(r'\d+', commentsTag.text).group(0))
-    print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
-    commentTree = {} if numComments == 0 else parseComments(url)
-    results.append({'title':title, 'url':url, 'date':str(date), 'score':score,
-                    'author':author, 'subreddit':subreddit, 'comments':commentTree})
+def processPosts(posts, product, keyword):
+    product[keyword] = {}
+    product[keyword]['posts'] = []
+    for post in posts:
+        time = post.find('time')['datetime']
+        date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
+        title = post.find('a', {'class':'search-title'}).text
+        score = post.find('span', {'class':'search-score'}).text
+        score = int(re.match(r'[+-]?\d+', score).group(0))
+        author = post.find('a', {'class':'author'}).text
+        subreddit = post.find('a', {'class':'search-subreddit-link'}).text
+        commentsTag = post.find('a', {'class':'search-comments'})
+        url = commentsTag['href'] + '?sort=new'
+        numComments = int(re.match(r'\d+', commentsTag.text).group(0))
+        print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
+        commentTree = {} if numComments == 0 else parseComments(url)
+        product[keyword]['posts'].append({'title':title, 'url':url, 'date':str(date), 'score':score,
+                                          'author':author, 'subreddit':subreddit, 'comments':commentTree})
+    return product
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -88,17 +91,7 @@ if __name__ == '__main__':
     print('Search URL:', searchUrl)
     posts = getSearchResults(searchUrl)
     print('Started scraping', len(posts), 'posts.')
-    keyword = args.keyword.replace(' ', '-')
-    product[keyword] = {}
-    product[keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
-    results = Manager().list()
-    processes = []
-    for post in posts:
-        process = Process(target=processPost, args=(post, results))
-        processes.append(process)
-        process.start()
-    for process in processes:
-        process.join()
-    product[keyword]['posts'] = list(results)
+    product = processPosts(posts, product, args.keyword.replace(' ', '-')) 
+    product[args.keyword.replace(' ', '-')]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
