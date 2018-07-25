@@ -79,7 +79,6 @@ $(function() {
             }
         }
         $keywords.append('<li><b><i style="color:teal;font-size:20px;">' + keyword + '</i></b><br>' +
-                         '<b>Last Crawl Date: </b>' + product[keyword]['timestamp'] + '<br>' +
                          '<b>Subreddit: </b><a href=https://www.reddit.com/r/' + sub + '>r/' + sub + '</a><br>' +
                          '<b>Number of Posts: </b>' + product[keyword]['posts'].length + '<br>' +
                          '<b>Average Post Rating: </b>' + Math.round(postRating / product[keyword]['posts'].length) + '<br>' +
