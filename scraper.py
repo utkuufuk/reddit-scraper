@@ -73,9 +73,9 @@ if __name__ == '__main__':
         print('ERROR: No search keyword specified.')
         exit()
     if args.subreddit == None:
-        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"'
+        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
     else:
-        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on'
+        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new'
     if args.restrict == 'day' or args.restrict == 'week' or args.restrict == 'month' or args.restrict == 'year':
         searchUrl += '&t=' + args.restrict
     elif args.restrict != None:
