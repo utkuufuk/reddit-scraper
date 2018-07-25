@@ -9,7 +9,7 @@ SITE_URL = 'https://old.reddit.com/'
 DEFAULT_KEYWORD = "jojo mayer"
 DEFAULT_SUBREDDIT = None
 REQUEST_AGENT = 'Mozilla/5.0 Chrome/47.0.2526.106 Safari/537.36'
-TRESHOLD_DATE = datetime(year=2017, month=7, day=1)
+TRESHOLD_DATE = datetime(year=2000, month=7, day=1)
 
 def createSoup(url):
     return BeautifulSoup(requests.get(url, headers={'User-Agent':REQUEST_AGENT}).text, 'lxml')
@@ -85,9 +85,9 @@ if __name__ == '__main__':
     parser.add_argument('--subreddit', type=str, default=DEFAULT_SUBREDDIT, help='subreddit to search')
     args = parser.parse_args()
     if args.subreddit == None:
-        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new&t=year'
+        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
     else:
-        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new&t=year'
+        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new'
     print('Search URL:', searchUrl)
     try:
         product = json.load(open('product.json'))
