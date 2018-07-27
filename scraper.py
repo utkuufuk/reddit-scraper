@@ -58,7 +58,7 @@ def processPosts(posts, product, keyword):
         author = post.find('a', {'class':'author'}).text
         subreddit = post.find('a', {'class':'search-subreddit-link'}).text
         commentsTag = post.find('a', {'class':'search-comments'})
-        url = commentsTag['href'] + '?sort=new'
+        url = commentsTag['href']
         numComments = int(re.match(r'\d+', commentsTag.text).group(0))
         print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
         commentTree = {} if numComments == 0 else parseComments(url)
