@@ -47,8 +47,6 @@ def parseComments(commentsUrl):
     return commentTree
 
 def processPosts(posts, product, keyword):
-    product[keyword] = {}
-    product[keyword]['posts'] = []
     for post in posts:
         time = post.find('time')['datetime']
         date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
@@ -92,6 +90,8 @@ if __name__ == '__main__':
     posts = getSearchResults(searchUrl)
     print('Started scraping', len(posts), 'posts.')
     keyword = args.keyword.replace(' ', '-')
+    product[keyword] = {}
+    product[keyword]['posts'] = []
     product = processPosts(posts, product, keyword)
     product[keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     with open('product.json', 'w', encoding='utf-8') as f:
