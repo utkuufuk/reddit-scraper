@@ -56,7 +56,7 @@ def processPost(post, results):
     author = post.find('a', {'class':'author'}).text
     subreddit = post.find('a', {'class':'search-subreddit-link'}).text
     commentsTag = post.find('a', {'class':'search-comments'})
-    url = commentsTag['href'] + '?sort=new'
+    url = commentsTag['href']
     numComments = int(re.match(r'\d+', commentsTag.text).group(0))
     print("\n" + str(date)[:19] + ":", numComments, score, author, subreddit, title)
     commentTree = {} if numComments == 0 else parseComments(url)
@@ -66,19 +66,19 @@ def processPost(post, results):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, help='keyword to search')
-    parser.add_argument('--subreddit', type=str, help='subreddit to search')
-    parser.add_argument('--restrict', type=str, help='date restriction (day, week, month or year)')
+    parser.add_argument('--subreddit', type=str, help='optional subreddit restriction')
+    parser.add_argument('--date', type=str, help='optional date restriction (day, week, month or year)')
     args = parser.parse_args()
     if args.keyword == None:
         print('ERROR: No search keyword specified.')
         exit()
     if args.subreddit == None:
-        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
+        searchUrl = SITE_URL + 'search?q="' + args.keyword + '"'
     else:
-        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new'
-    if args.restrict == 'day' or args.restrict == 'week' or args.restrict == 'month' or args.restrict == 'year':
-        searchUrl += '&t=' + args.restrict
-    elif args.restrict != None:
+        searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on'
+    if args.date == 'day' or args.date == 'week' or args.date == 'month' or args.date == 'year':
+        searchUrl += '&t=' + args.date
+    elif args.date != None:
         print('WARNING: Invalid date restriction parameter. Proceeding without any restrictions.')
     try:
         product = json.load(open('product.json'))
