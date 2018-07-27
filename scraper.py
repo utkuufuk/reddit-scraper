@@ -69,8 +69,8 @@ def processPosts(posts, product, keyword):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, help='keyword to search')
-    parser.add_argument('--subreddit', type=str, help='subreddit to search')
-    parser.add_argument('--date', type=str, help='date restriction (day, week, month or year)')
+    parser.add_argument('--subreddit', type=str, help='optional subreddit restriction')
+    parser.add_argument('--date', type=str, help='optional date restriction (day, week, month or year)')
     args = parser.parse_args()
     if args.keyword == None:
         print('ERROR: No search keyword specified.')
