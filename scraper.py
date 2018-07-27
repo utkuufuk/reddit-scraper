@@ -70,7 +70,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', type=str, help='keyword to search')
     parser.add_argument('--subreddit', type=str, help='subreddit to search')
-    parser.add_argument('--restrict', type=str, help='date restriction (day, week, month or year)')
+    parser.add_argument('--date', type=str, help='date restriction (day, week, month or year)')
     args = parser.parse_args()
     if args.keyword == None:
         print('ERROR: No search keyword specified.')
@@ -79,9 +79,9 @@ if __name__ == '__main__':
         searchUrl = SITE_URL + 'search?q="' + args.keyword + '"&sort=new'
     else:
         searchUrl = SITE_URL + 'r/' + args.subreddit + '/search?q="' + args.keyword + '"&restrict_sr=on&sort=new'
-    if args.restrict == 'day' or args.restrict == 'week' or args.restrict == 'month' or args.restrict == 'year':
-        searchUrl += '&t=' + args.restrict
-    elif args.restrict != None:
+    if args.date == 'day' or args.date == 'week' or args.date == 'month' or args.date == 'year':
+        searchUrl += '&t=' + args.date
+    elif args.date != None:
         print('WARNING: Invalid date restriction parameter. Proceeding without any restrictions.')
     try:
         product = json.load(open('product.json'))
