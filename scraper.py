@@ -91,7 +91,8 @@ if __name__ == '__main__':
     print('Search URL:', searchUrl)
     posts = getSearchResults(searchUrl)
     print('Started scraping', len(posts), 'posts.')
-    product = processPosts(posts, product, args.keyword.replace(' ', '-')) 
-    product[args.keyword.replace(' ', '-')]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
+    keyword = args.keyword.replace(' ', '-')
+    product = processPosts(posts, product, keyword)
+    product[keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
