@@ -92,13 +92,13 @@ if __name__ == '__main__':
     product[keyword] = {}
     product[keyword]['subreddit'] = 'all' if args.subreddit == None else args.subreddit
     results = Manager().list()
-    processes = []
+    jobs = []
     for post in posts:
-        process = Process(target=processPost, args=(post, results))
-        processes.append(process)
-        process.start()
-    for process in processes:
-        process.join()
+        job = Process(target=processPost, args=(post, results))
+        jobs.append(job)
+        job.start()
+    for job in jobs:
+        job.join()
     product[keyword]['posts'] = list(results)
     with open('product.json', 'w', encoding='utf-8') as f:
         json.dump(product, f, indent=4, ensure_ascii=False)
