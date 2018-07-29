@@ -47,7 +47,7 @@ def parseComments(commentsUrl):
                                   'score':score, 'num-replies':numReplies, 'date':str(date)}
     return commentTree
 
-def processPost(post, results):
+def parsePost(post, results):
     time = post.find('time')['datetime']
     date = datetime.strptime(time[:19], '%Y-%m-%dT%H:%M:%S')
     title = post.find('a', {'class':'search-title'}).text
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     results = Manager().list()
     jobs = []
     for post in posts:
-        job = Process(target=processPost, args=(post, results))
+        job = Process(target=parsePost, args=(post, results))
         jobs.append(job)
         job.start()
     for job in jobs:
