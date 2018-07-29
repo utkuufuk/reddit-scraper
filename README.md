@@ -18,7 +18,8 @@ npm install --save json-server
 ```
 
 ### Installing Beautiful Soup 4, Requests and LXML
-[Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#) is used for parsing the HTML data of [Reddit](https://www.reddit.com), using the [LXML parser](https://lxml.de/). So they have to be installed along with the `requests` package for Python 3 in order to use the scraper.
+[Beautiful Soup 4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#) has to be installed along with the [LXML parser](https://lxml.de/). Also the [requests](http://docs.python-requests.org/en/master/) library is required to access the HTML content of [Reddit](https://old.reddit.com).
+
 ``` sh
 pip3 install beautifulsoup4
 pip3 install requests
